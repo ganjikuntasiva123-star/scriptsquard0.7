@@ -51,7 +51,20 @@ border-radius:10px;
 box-shadow:0 5px 15px rgba(0,0,0,0.3);
 }
 
-/* Search Bar */
+/* Form */
+
+.form-box{
+margin-bottom:20px;
+}
+
+.form-box input{
+padding:10px;
+margin:5px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+/* Search */
 
 .search-box{
 margin-top:10px;
@@ -83,6 +96,19 @@ background:#3498db;
 color:white;
 }
 
+button{
+padding:8px 15px;
+background:#27ae60;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:#2ecc71;
+}
+
 </style>
 
 </head>
@@ -99,6 +125,18 @@ color:white;
 </nav>
 
 <div class="container">
+
+<h2>Register Complaint</h2>
+
+<div class="form-box">
+
+<input type="text" id="name" placeholder="Citizen Name">
+<input type="text" id="category" placeholder="Category">
+<input type="text" id="location" placeholder="Location">
+
+<button onclick="addComplaint()">Submit Complaint</button>
+
+</div>
 
 <h2>Citizen Complaints</h2>
 
@@ -127,6 +165,18 @@ color:white;
 let complaints = JSON.parse(localStorage.getItem("complaints")) || [];
 let table = document.getElementById("complaintTable");
 
+function loadTable(){
+
+table.innerHTML = `
+<tr>
+<th>Complaint ID</th>
+<th>Name</th>
+<th>Category</th>
+<th>Location</th>
+<th>Status</th>
+</tr>
+`;
+
 complaints.forEach(function(c){
 
 let row = document.createElement("tr");
@@ -142,6 +192,43 @@ table.appendChild(row);
 
 });
 
+}
+
+loadTable();
+
+/* Add complaint */
+
+function addComplaint(){
+
+let name = document.getElementById("name").value;
+let category = document.getElementById("category").value;
+let location = document.getElementById("location").value;
+
+if(name=="" || category=="" || location==""){
+alert("Please fill all fields");
+return;
+}
+
+let newComplaint = {
+id: "CMP"+Math.floor(Math.random()*10000),
+name: name,
+category: category,
+location: location,
+status: "Submitted"
+};
+
+complaints.push(newComplaint);
+
+localStorage.setItem("complaints", JSON.stringify(complaints));
+
+loadTable();
+
+document.getElementById("name").value="";
+document.getElementById("category").value="";
+document.getElementById("location").value="";
+
+}
+
 /* Search Function */
 
 function searchTable(){
@@ -151,7 +238,7 @@ let rows = document.querySelectorAll("#complaintTable tr");
 
 rows.forEach(function(row, index){
 
-if(index === 0) return; // skip header
+if(index === 0) return;
 
 let text = row.innerText.toLowerCase();
 
