@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Complaints Dashboard</title>
 
 <style>
 
 body{
 margin:0;
 font-family:Arial, sans-serif;
-background:linear-gradient(120deg,#3498db,#8e44ad);
+background:linear-gradient(120deg,#16a085,#2ecc71);
 }
 
 /* Header */
@@ -46,35 +45,9 @@ width:85%;
 margin:auto;
 margin-top:40px;
 background:white;
-padding:20px;
+padding:25px;
 border-radius:10px;
 box-shadow:0 5px 15px rgba(0,0,0,0.3);
-}
-
-/* Form */
-
-.form-box{
-margin-bottom:20px;
-}
-
-.form-box input{
-padding:10px;
-margin:5px;
-border-radius:6px;
-border:1px solid #ccc;
-}
-
-/* Search */
-
-.search-box{
-margin-top:10px;
-}
-
-.search-box input{
-width:300px;
-padding:10px;
-border-radius:6px;
-border:1px solid #ccc;
 }
 
 /* Table */
@@ -92,9 +65,18 @@ text-align:center;
 }
 
 th{
-background:#3498db;
+background:#16a085;
 color:white;
 }
+
+/* Status dropdown */
+
+select{
+padding:6px;
+border-radius:4px;
+}
+
+/* Update button */
 
 button{
 padding:8px 15px;
@@ -116,33 +98,18 @@ background:#2ecc71;
 <body>
 
 <header>
-<h1>Complaints Dashboard</h1>
+<h1 id="dashboardTitle"></h1>
 </header>
 
 <nav>
 <a href="index.html">Home</a>
-<a href="track.html">Track Status</a>
+<a href="track.html">Track Complaint</a>
+<a href="#" onclick="logout()">Logout</a>
 </nav>
 
 <div class="container">
 
-<h2>Register Complaint</h2>
-
-<div class="form-box">
-
-<input type="text" id="name" placeholder="Citizen Name">
-<input type="text" id="category" placeholder="Category">
-<input type="text" id="location" placeholder="Location">
-
-<button onclick="addComplaint()">Submit Complaint</button>
-
-</div>
-
-<h2>Citizen Complaints</h2>
-
-<div class="search-box">
-<input type="text" id="searchInput" placeholder="Search complaint..." onkeyup="searchTable()">
-</div>
+<h2>Assigned Complaints</h2>
 
 <table id="complaintTable">
 
@@ -152,6 +119,7 @@ background:#2ecc71;
 <th>Category</th>
 <th>Location</th>
 <th>Status</th>
+<th>Update</th>
 </tr>
 
 </table>
@@ -160,91 +128,71 @@ background:#2ecc71;
 
 <script>
 
+/* Check login */
+
+if(localStorage.getItem("officerLoggedIn") !== "true"){
+alert("Please login first")
+window.location.href="officer.html"
+}
+
+/* Get officer name */
+
+let officerName = localStorage.getItem("officerName") || "Officer"
+
+/* Show name in header */
+
+document.getElementById("dashboardTitle").innerText =
+"Welcome " + officerName
+
 /* Load complaints */
 
-let complaints = JSON.parse(localStorage.getItem("complaints")) || [];
-let table = document.getElementById("complaintTable");
+let complaints = JSON.parse(localStorage.getItem("complaints")) || []
 
-function loadTable(){
+let table = document.getElementById("complaintTable")
 
-table.innerHTML = `
-<tr>
-<th>Complaint ID</th>
-<th>Name</th>
-<th>Category</th>
-<th>Location</th>
-<th>Status</th>
-</tr>
-`;
+complaints.forEach(function(c,index){
 
-complaints.forEach(function(c){
-
-let row = document.createElement("tr");
+let row = document.createElement("tr")
 
 row.innerHTML =
 "<td>"+c.id+"</td>" +
-"<td>"+c.name+"</td>" +
+"<td>"+c.Name+"</td>" +
 "<td>"+c.category+"</td>" +
 "<td>"+c.location+"</td>" +
-"<td>"+c.status+"</td>";
 
-table.appendChild(row);
+"<td>" +
+"<select id='status"+index+"'>" +
+"<option "+(c.status==="Submitted"?"selected":"")+">Submitted</option>" +
+"<option "+(c.status==="Under Review"?"selected":"")+">Under Review</option>" +
+"<option "+(c.status==="Assigned"?"selected":"")+">Assigned</option>" +
+"<option "+(c.status==="In Progress"?"selected":"")+">In Progress</option>" +
+"<option "+(c.status==="Resolved"?"selected":"")+">Resolved</option>" +
+"</select>" +
+"</td>" +
 
-});
+"<td><button onclick='updateStatus("+index+")'>Update</button></td>"
 
-}
+table.appendChild(row)
 
-loadTable();
+})
 
-/* Add complaint */
+function updateStatus(index){
 
-function addComplaint(){
+let newStatus=document.getElementById("status"+index).value
 
-let name = document.getElementById("name").value;
-let category = document.getElementById("category").value;
-let location = document.getElementById("location").value;
+complaints[index].status=newStatus
 
-if(name=="" || category=="" || location==""){
-alert("Please fill all fields");
-return;
-}
+localStorage.setItem("complaints",JSON.stringify(complaints))
 
-let newComplaint = {
-id: "CMP"+Math.floor(Math.random()*10000),
-name: name,
-category: category,
-location: location,
-status: "Submitted"
-};
-
-complaints.push(newComplaint);
-
-localStorage.setItem("complaints", JSON.stringify(complaints));
-
-loadTable();
-
-document.getElementById("name").value="";
-document.getElementById("category").value="";
-document.getElementById("location").value="";
+alert("Status Updated")
 
 }
 
-/* Search Function */
+function logout(){
 
-function searchTable(){
+localStorage.removeItem("officerLoggedIn")
 
-let input = document.getElementById("searchInput").value.toLowerCase();
-let rows = document.querySelectorAll("#complaintTable tr");
-
-rows.forEach(function(row, index){
-
-if(index === 0) return;
-
-let text = row.innerText.toLowerCase();
-
-row.style.display = text.includes(input) ? "" : "none";
-
-});
+window.location.href="index.html"
 
 }
 
